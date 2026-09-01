@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         The Lounge Local Translator
 // @namespace    thelounge-local-translator
-// @version      1.0.0
+// @version      1.1.0
 // @description  Translate The Lounge messages locally to English using the browser Translator API.
 // @match        https://example.invalid/*
 // @grant        none
@@ -16,7 +16,6 @@
     const TARGET_LANGUAGE = "en";
     const DEFAULT_SOURCE_LANGUAGE = "nl";
 
-    // Stored by the page origin, separately from the userscript source.
     const STORAGE_KEY = "thelounge-translator.source-language";
 
     const MESSAGE_SELECTOR = '.msg[data-type="message"]';
@@ -25,9 +24,10 @@
 
     let translator = null;
     let processing = false;
+    let rescanTimer = null;
+
     const queue = [];
 
-    let controls;
     let enableButton;
     let sourceButton;
 
@@ -36,12 +36,17 @@
     // -------------------------------------------------------------------------
 
     function getSourceLanguage() {
-        return localStorage.getItem(STORAGE_KEY)
-            || DEFAULT_SOURCE_LANGUAGE;
+        return (
+            localStorage.getItem(STORAGE_KEY)
+            || DEFAULT_SOURCE_LANGUAGE
+        );
     }
 
     function setSourceLanguage(language) {
-        localStorage.setItem(STORAGE_KEY, language);
+        localStorage.setItem(
+            STORAGE_KEY,
+            language.toLowerCase()
+        );
 
         destroyTranslator();
         resetMessages();
@@ -80,6 +85,7 @@
 
         const clone = content.cloneNode(true);
 
+        // Remove things that aren't part of the actual chat message.
         clone.querySelectorAll([
             ".reply-context",
             ".preview",
@@ -100,7 +106,9 @@
             return;
         }
 
-        content.querySelector(`.${TRANSLATION_CLASS}`)?.remove();
+        content
+            .querySelector(`.${TRANSLATION_CLASS}`)
+            ?.remove();
 
         const element = document.createElement("span");
 
@@ -129,6 +137,7 @@
             return;
         }
 
+        // Prevent translating the same DOM message twice.
         if (message.hasAttribute(STATE_ATTRIBUTE)) {
             return;
         }
@@ -139,7 +148,10 @@
             return;
         }
 
-        message.setAttribute(STATE_ATTRIBUTE, "queued");
+        message.setAttribute(
+            STATE_ATTRIBUTE,
+            "queued"
+        );
 
         queue.push({
             element: message,
@@ -177,6 +189,8 @@
                     const translated =
                         await translator.translate(text);
 
+                    // The Lounge may have replaced the DOM node
+                    // while translation was running.
                     if (!element.isConnected) {
                         continue;
                     }
@@ -211,10 +225,41 @@
         }
     }
 
-    function scanMessages() {
-        document
-            .querySelectorAll(MESSAGE_SELECTOR)
-            .forEach(enqueueMessage);
+    // -------------------------------------------------------------------------
+    // Existing messages
+    // -------------------------------------------------------------------------
+
+    function scanExistingMessages() {
+        if (!translator) {
+            return;
+        }
+
+        const messages =
+            document.querySelectorAll(MESSAGE_SELECTOR);
+
+        console.debug(
+            `[The Lounge Translator] Scanning ${messages.length} existing messages`
+        );
+
+        messages.forEach(enqueueMessage);
+    }
+
+    /*
+     * The Lounge is a Vue application and can replace chunks of the
+     * message DOM when changing channels / loading history.
+     *
+     * Debouncing avoids rescanning hundreds of times during one render.
+     */
+    function scheduleRescan() {
+        if (!translator) {
+            return;
+        }
+
+        clearTimeout(rescanTimer);
+
+        rescanTimer = setTimeout(() => {
+            scanExistingMessages();
+        }, 150);
     }
 
     function resetMessages() {
@@ -223,7 +268,9 @@
         document
             .querySelectorAll(MESSAGE_SELECTOR)
             .forEach((message) => {
-                message.removeAttribute(STATE_ATTRIBUTE);
+                message.removeAttribute(
+                    STATE_ATTRIBUTE
+                );
 
                 message
                     .querySelector(`.${TRANSLATION_CLASS}`)
@@ -241,32 +288,40 @@
                 return;
             }
 
+            let shouldRescan = false;
+
             for (const mutation of mutations) {
                 for (const node of mutation.addedNodes) {
-                    const element =
-                        node instanceof HTMLElement
-                            ? node
-                            : node.parentElement;
-
-                    if (!element) {
+                    if (!(node instanceof HTMLElement)) {
                         continue;
                     }
 
-                    if (element.matches?.(MESSAGE_SELECTOR)) {
-                        enqueueMessage(element);
+                    /*
+                     * Fast path for newly-arriving messages.
+                     */
+                    if (node.matches?.(MESSAGE_SELECTOR)) {
+                        enqueueMessage(node);
+                        continue;
                     }
 
-                    const parentMessage =
-                        element.closest?.(MESSAGE_SELECTOR);
+                    const messages =
+                        node.querySelectorAll?.(
+                            MESSAGE_SELECTOR
+                        );
 
-                    if (parentMessage) {
-                        enqueueMessage(parentMessage);
+                    if (messages?.length) {
+                        messages.forEach(enqueueMessage);
+                        shouldRescan = true;
                     }
-
-                    element
-                        .querySelectorAll?.(MESSAGE_SELECTOR)
-                        .forEach(enqueueMessage);
                 }
+            }
+
+            /*
+             * Useful when The Lounge rerenders a channel or loads
+             * an older batch of messages.
+             */
+            if (shouldRescan) {
+                scheduleRescan();
             }
         });
 
@@ -298,19 +353,19 @@
             return;
         }
 
-        const sourceLanguage = getSourceLanguage();
+        const sourceLanguage =
+            getSourceLanguage();
 
         enableButton.disabled = true;
         sourceButton.disabled = true;
 
         enableButton.textContent =
-            `Starting ${sourceLanguage}→EN…`;
+            `Starting ${sourceLanguage.toUpperCase()}→EN…`;
 
         try {
             /*
-             * Do not await anything before Translator.create().
-             * Browser implementations may require transient user
-             * activation from the button click.
+             * Keep Translator.create() directly inside the user
+             * interaction path.
              */
             translator = await Translator.create({
                 sourceLanguage,
@@ -321,17 +376,19 @@
                         "downloadprogress",
                         (event) => {
                             const percent =
-                                Math.round(event.loaded * 100);
+                                Math.round(
+                                    event.loaded * 100
+                                );
 
                             enableButton.textContent =
-                                `${sourceLanguage}→EN ${percent}%`;
+                                `Downloading ${sourceLanguage.toUpperCase()}→EN ${percent}%`;
                         }
                     );
                 },
             });
 
             console.log(
-                `[The Lounge Translator] ${sourceLanguage} → en ready.`
+                `[The Lounge Translator] ${sourceLanguage} → en ready`
             );
 
             enableButton.textContent =
@@ -339,7 +396,20 @@
 
             sourceButton.disabled = false;
 
-            scanMessages();
+            /*
+             * IMPORTANT:
+             * Translate every message that is already present
+             * when translation gets enabled.
+             */
+            scanExistingMessages();
+
+            /*
+             * The Lounge may still be finishing a Vue render,
+             * so scan again shortly afterwards.
+             */
+            setTimeout(scanExistingMessages, 250);
+            setTimeout(scanExistingMessages, 1000);
+
         } catch (error) {
             console.error(
                 "[The Lounge Translator] Could not create translator:",
@@ -361,7 +431,8 @@
     // -------------------------------------------------------------------------
 
     function updateControls() {
-        const source = getSourceLanguage();
+        const source =
+            getSourceLanguage();
 
         sourceButton.textContent =
             `Source: ${source.toUpperCase()}`;
@@ -371,17 +442,20 @@
 
         if (translator) {
             enableButton.disabled = true;
+
             enableButton.textContent =
                 `${source.toUpperCase()}→EN enabled`;
         } else {
             enableButton.disabled = false;
+
             enableButton.textContent =
                 `Enable ${source.toUpperCase()}→EN`;
         }
     }
 
     function changeSourceLanguage() {
-        const current = getSourceLanguage();
+        const current =
+            getSourceLanguage();
 
         const value = prompt(
             "Source language code (nl, de, fr, etc.):",
@@ -392,14 +466,17 @@
             return;
         }
 
-        const language = value.trim();
+        const language =
+            value.trim().toLowerCase();
 
         if (!language) {
             return;
         }
 
-        if (language.toLowerCase() === "en") {
-            alert("English is already the target language.");
+        if (language === "en") {
+            alert(
+                "English is already the target language."
+            );
             return;
         }
 
@@ -407,7 +484,8 @@
     }
 
     function createControls() {
-        controls = document.createElement("div");
+        const controls =
+            document.createElement("div");
 
         Object.assign(controls.style, {
             position: "fixed",
@@ -420,8 +498,11 @@
             fontSize: "12px",
         });
 
-        enableButton = document.createElement("button");
-        sourceButton = document.createElement("button");
+        enableButton =
+            document.createElement("button");
+
+        sourceButton =
+            document.createElement("button");
 
         for (const button of [
             enableButton,
@@ -456,7 +537,9 @@
             enableButton
         );
 
-        document.body.appendChild(controls);
+        document.body.appendChild(
+            controls
+        );
 
         updateControls();
     }
@@ -469,6 +552,6 @@
     createControls();
 
     console.log(
-        "[The Lounge Translator] userscript loaded."
+        "[The Lounge Translator] userscript loaded"
     );
 })();
