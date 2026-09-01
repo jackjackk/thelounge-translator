@@ -24,6 +24,7 @@
     let creatingTranslator = false;
     let processing = false;
     let rescanTimer = null;
+    let activationRetryArmed = false;
 
     const queue = [];
 
@@ -184,7 +185,7 @@
     }
 
     // -------------------------------------------------------------------------
-    // Existing messages
+    // Existing messages / rescanning
     // -------------------------------------------------------------------------
 
     function scanExistingMessages() {
@@ -197,7 +198,7 @@
             .forEach(enqueueMessage);
     }
 
-    function scheduleRescan() {
+    function scheduleRescan(delay = 150) {
         if (!translator) {
             return;
         }
@@ -206,12 +207,12 @@
 
         rescanTimer = setTimeout(
             scanExistingMessages,
-            150
+            delay
         );
     }
 
     // -------------------------------------------------------------------------
-    // Watch The Lounge
+    // Watch for new messages / history / rerenders
     // -------------------------------------------------------------------------
 
     function startObserver() {
@@ -230,7 +231,6 @@
 
                     if (node.matches?.(MESSAGE_SELECTOR)) {
                         enqueueMessage(node);
-                        continue;
                     }
 
                     const messages =
@@ -254,6 +254,72 @@
             childList: true,
             subtree: true,
         });
+    }
+
+    // -------------------------------------------------------------------------
+    // Channel / PM switching
+    // -------------------------------------------------------------------------
+
+    function startNavigationWatcher() {
+        /*
+         * The Lounge is a single-page application.
+         *
+         * A conversation switch may happen without inserting entirely new
+         * message nodes immediately, so after user navigation we explicitly
+         * rescan the currently rendered DOM.
+         */
+        document.addEventListener(
+            "click",
+            () => {
+                if (!translator) {
+                    return;
+                }
+
+                /*
+                 * Give The Lounge time to update the active channel/query.
+                 */
+                scheduleRescan(100);
+
+                /*
+                 * A second scan catches delayed Vue rendering/history restore.
+                 */
+                setTimeout(
+                    scanExistingMessages,
+                    400
+                );
+            },
+            true
+        );
+
+        /*
+         * Also cover browser back/forward navigation.
+         */
+        window.addEventListener(
+            "popstate",
+            () => {
+                scheduleRescan(100);
+
+                setTimeout(
+                    scanExistingMessages,
+                    400
+                );
+            }
+        );
+
+        /*
+         * Some SPA navigation uses hash changes.
+         */
+        window.addEventListener(
+            "hashchange",
+            () => {
+                scheduleRescan(100);
+
+                setTimeout(
+                    scanExistingMessages,
+                    400
+                );
+            }
+        );
     }
 
     // -------------------------------------------------------------------------
@@ -299,16 +365,22 @@
             );
 
             /*
-             * Translate everything already visible.
+             * Translate messages already present.
              */
             scanExistingMessages();
 
             /*
-             * Additional scans catch messages The Lounge may still
-             * be rendering asynchronously.
+             * Catch delayed rendering.
              */
-            setTimeout(scanExistingMessages, 250);
-            setTimeout(scanExistingMessages, 1000);
+            setTimeout(
+                scanExistingMessages,
+                250
+            );
+
+            setTimeout(
+                scanExistingMessages,
+                1000
+            );
 
         } catch (error) {
             translator = null;
@@ -318,11 +390,6 @@
                 error
             );
 
-            /*
-             * Chromium may require transient user activation to
-             * create the Translator. Retry silently on the user's
-             * first interaction with The Lounge.
-             */
             if (
                 error.name === "NotAllowedError"
                 || error.name === "SecurityError"
@@ -338,8 +405,6 @@
             creatingTranslator = false;
         }
     }
-
-    let activationRetryArmed = false;
 
     function armUserActivationRetry() {
         if (activationRetryArmed) {
@@ -367,10 +432,6 @@
                 true
             );
 
-            /*
-             * Run immediately while transient user activation
-             * is still available.
-             */
             createTranslator();
         };
 
@@ -392,6 +453,7 @@
     // -------------------------------------------------------------------------
 
     startObserver();
+    startNavigationWatcher();
     createTranslator();
 
     console.log(
