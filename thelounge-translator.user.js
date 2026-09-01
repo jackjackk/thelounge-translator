@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         The Lounge NL → EN Translator
 // @namespace    thelounge-local-translator
-// @version      1.2.0
+// @version      1.3.0
 // @description  Automatically translate Dutch The Lounge messages to English using the browser's local Translator API.
 // @match        https://example.invalid/*
 // @grant        none
