@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         The Lounge Local Translator
 // @namespace    thelounge-local-translator
-// @version      1.1.0
+// @version      1.2.0
 // @description  Translate The Lounge messages locally to English using the browser Translator API.
 // @match        https://example.invalid/*
 // @grant        none
@@ -110,15 +110,15 @@
             .querySelector(`.${TRANSLATION_CLASS}`)
             ?.remove();
 
-        const element = document.createElement("span");
+        const element = document.createElement("div");
 
         element.className = TRANSLATION_CLASS;
-        element.textContent = ` [EN: ${text}]`;
+        element.textContent = text;
 
         Object.assign(element.style, {
             opacity: "0.72",
             fontStyle: "italic",
-            marginLeft: "0.4ch",
+            marginTop: "2px",
         });
 
         content.appendChild(element);
