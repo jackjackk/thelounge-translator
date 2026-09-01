@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name         The Lounge Local Translator
+// @name         The Lounge NL → EN Translator
 // @namespace    thelounge-local-translator
 // @version      1.2.0
-// @description  Translate The Lounge messages locally to English using the browser Translator API.
+// @description  Automatically translate Dutch The Lounge messages to English using the browser's local Translator API.
 // @match        https://example.invalid/*
 // @grant        none
 // @run-at       document-idle
@@ -13,57 +13,19 @@
 (() => {
     "use strict";
 
+    const SOURCE_LANGUAGE = "nl";
     const TARGET_LANGUAGE = "en";
-    const DEFAULT_SOURCE_LANGUAGE = "nl";
-
-    const STORAGE_KEY = "thelounge-translator.source-language";
 
     const MESSAGE_SELECTOR = '.msg[data-type="message"]';
     const TRANSLATION_CLASS = "local-en-translation";
     const STATE_ATTRIBUTE = "data-local-translation-state";
 
     let translator = null;
+    let creatingTranslator = false;
     let processing = false;
     let rescanTimer = null;
 
     const queue = [];
-
-    let enableButton;
-    let sourceButton;
-
-    // -------------------------------------------------------------------------
-    // Settings
-    // -------------------------------------------------------------------------
-
-    function getSourceLanguage() {
-        return (
-            localStorage.getItem(STORAGE_KEY)
-            || DEFAULT_SOURCE_LANGUAGE
-        );
-    }
-
-    function setSourceLanguage(language) {
-        localStorage.setItem(
-            STORAGE_KEY,
-            language.toLowerCase()
-        );
-
-        destroyTranslator();
-        resetMessages();
-        updateControls();
-    }
-
-    function destroyTranslator() {
-        try {
-            translator?.destroy?.();
-        } catch {
-            // Ignore cleanup errors.
-        }
-
-        translator = null;
-        processing = false;
-        queue.length = 0;
-    }
 
     // -------------------------------------------------------------------------
     // Message handling
@@ -85,7 +47,6 @@
 
         const clone = content.cloneNode(true);
 
-        // Remove things that aren't part of the actual chat message.
         clone.querySelectorAll([
             ".reply-context",
             ".preview",
@@ -137,7 +98,6 @@
             return;
         }
 
-        // Prevent translating the same DOM message twice.
         if (message.hasAttribute(STATE_ATTRIBUTE)) {
             return;
         }
@@ -189,8 +149,6 @@
                     const translated =
                         await translator.translate(text);
 
-                    // The Lounge may have replaced the DOM node
-                    // while translation was running.
                     if (!element.isConnected) {
                         continue;
                     }
@@ -206,7 +164,7 @@
                     );
                 } catch (error) {
                     console.error(
-                        "[The Lounge Translator] Translation failed:",
+                        "[NL→EN] Translation failed:",
                         text,
                         error
                     );
@@ -234,22 +192,11 @@
             return;
         }
 
-        const messages =
-            document.querySelectorAll(MESSAGE_SELECTOR);
-
-        console.debug(
-            `[The Lounge Translator] Scanning ${messages.length} existing messages`
-        );
-
-        messages.forEach(enqueueMessage);
+        document
+            .querySelectorAll(MESSAGE_SELECTOR)
+            .forEach(enqueueMessage);
     }
 
-    /*
-     * The Lounge is a Vue application and can replace chunks of the
-     * message DOM when changing channels / loading history.
-     *
-     * Debouncing avoids rescanning hundreds of times during one render.
-     */
     function scheduleRescan() {
         if (!translator) {
             return;
@@ -257,29 +204,14 @@
 
         clearTimeout(rescanTimer);
 
-        rescanTimer = setTimeout(() => {
-            scanExistingMessages();
-        }, 150);
-    }
-
-    function resetMessages() {
-        queue.length = 0;
-
-        document
-            .querySelectorAll(MESSAGE_SELECTOR)
-            .forEach((message) => {
-                message.removeAttribute(
-                    STATE_ATTRIBUTE
-                );
-
-                message
-                    .querySelector(`.${TRANSLATION_CLASS}`)
-                    ?.remove();
-            });
+        rescanTimer = setTimeout(
+            scanExistingMessages,
+            150
+        );
     }
 
     // -------------------------------------------------------------------------
-    // Mutation observer
+    // Watch The Lounge
     // -------------------------------------------------------------------------
 
     function startObserver() {
@@ -296,9 +228,6 @@
                         continue;
                     }
 
-                    /*
-                     * Fast path for newly-arriving messages.
-                     */
                     if (node.matches?.(MESSAGE_SELECTOR)) {
                         enqueueMessage(node);
                         continue;
@@ -316,10 +245,6 @@
                 }
             }
 
-            /*
-             * Useful when The Lounge rerenders a channel or loads
-             * an older batch of messages.
-             */
             if (shouldRescan) {
                 scheduleRescan();
             }
@@ -332,216 +257,134 @@
     }
 
     // -------------------------------------------------------------------------
-    // Translator
+    // Translator initialization
     // -------------------------------------------------------------------------
 
-    async function enableTranslator() {
-        if (translator) {
+    async function createTranslator() {
+        if (translator || creatingTranslator) {
             return;
         }
 
         if (!("Translator" in globalThis)) {
             console.error(
-                "[The Lounge Translator] Translator API unavailable."
+                "[NL→EN] Translator API unavailable."
             );
-
-            enableButton.textContent =
-                "Translator unavailable";
-
-            enableButton.disabled = true;
 
             return;
         }
 
-        const sourceLanguage =
-            getSourceLanguage();
-
-        enableButton.disabled = true;
-        sourceButton.disabled = true;
-
-        enableButton.textContent =
-            `Starting ${sourceLanguage.toUpperCase()}→EN…`;
+        creatingTranslator = true;
 
         try {
-            /*
-             * Keep Translator.create() directly inside the user
-             * interaction path.
-             */
             translator = await Translator.create({
-                sourceLanguage,
+                sourceLanguage: SOURCE_LANGUAGE,
                 targetLanguage: TARGET_LANGUAGE,
 
                 monitor(monitor) {
                     monitor.addEventListener(
                         "downloadprogress",
                         (event) => {
-                            const percent =
-                                Math.round(
-                                    event.loaded * 100
-                                );
-
-                            enableButton.textContent =
-                                `Downloading ${sourceLanguage.toUpperCase()}→EN ${percent}%`;
+                            console.log(
+                                `[NL→EN] Model download: ${
+                                    Math.round(event.loaded * 100)
+                                }%`
+                            );
                         }
                     );
                 },
             });
 
             console.log(
-                `[The Lounge Translator] ${sourceLanguage} → en ready`
+                "[NL→EN] Translator ready."
             );
 
-            enableButton.textContent =
-                `${sourceLanguage.toUpperCase()}→EN enabled`;
-
-            sourceButton.disabled = false;
-
             /*
-             * IMPORTANT:
-             * Translate every message that is already present
-             * when translation gets enabled.
+             * Translate everything already visible.
              */
             scanExistingMessages();
 
             /*
-             * The Lounge may still be finishing a Vue render,
-             * so scan again shortly afterwards.
+             * Additional scans catch messages The Lounge may still
+             * be rendering asynchronously.
              */
             setTimeout(scanExistingMessages, 250);
             setTimeout(scanExistingMessages, 1000);
 
         } catch (error) {
-            console.error(
-                "[The Lounge Translator] Could not create translator:",
+            translator = null;
+
+            console.warn(
+                "[NL→EN] Automatic initialization failed:",
                 error
             );
 
-            translator = null;
-
-            enableButton.disabled = false;
-            sourceButton.disabled = false;
-
-            enableButton.textContent =
-                `Enable ${sourceLanguage.toUpperCase()}→EN`;
+            /*
+             * Chromium may require transient user activation to
+             * create the Translator. Retry silently on the user's
+             * first interaction with The Lounge.
+             */
+            if (
+                error.name === "NotAllowedError"
+                || error.name === "SecurityError"
+            ) {
+                armUserActivationRetry();
+            } else {
+                console.error(
+                    "[NL→EN] Could not initialize translator.",
+                    error
+                );
+            }
+        } finally {
+            creatingTranslator = false;
         }
     }
 
-    // -------------------------------------------------------------------------
-    // UI
-    // -------------------------------------------------------------------------
+    let activationRetryArmed = false;
 
-    function updateControls() {
-        const source =
-            getSourceLanguage();
-
-        sourceButton.textContent =
-            `Source: ${source.toUpperCase()}`;
-
-        sourceButton.title =
-            "Change source language";
-
-        if (translator) {
-            enableButton.disabled = true;
-
-            enableButton.textContent =
-                `${source.toUpperCase()}→EN enabled`;
-        } else {
-            enableButton.disabled = false;
-
-            enableButton.textContent =
-                `Enable ${source.toUpperCase()}→EN`;
+    function armUserActivationRetry() {
+        if (activationRetryArmed) {
+            return;
         }
-    }
 
-    function changeSourceLanguage() {
-        const current =
-            getSourceLanguage();
+        activationRetryArmed = true;
 
-        const value = prompt(
-            "Source language code (nl, de, fr, etc.):",
-            current
+        console.log(
+            "[NL→EN] Waiting for user interaction to initialize Translator."
         );
 
-        if (value === null) {
-            return;
-        }
+        const retry = () => {
+            activationRetryArmed = false;
 
-        const language =
-            value.trim().toLowerCase();
-
-        if (!language) {
-            return;
-        }
-
-        if (language === "en") {
-            alert(
-                "English is already the target language."
+            document.removeEventListener(
+                "pointerdown",
+                retry,
+                true
             );
-            return;
-        }
 
-        setSourceLanguage(language);
-    }
+            document.removeEventListener(
+                "keydown",
+                retry,
+                true
+            );
 
-    function createControls() {
-        const controls =
-            document.createElement("div");
+            /*
+             * Run immediately while transient user activation
+             * is still available.
+             */
+            createTranslator();
+        };
 
-        Object.assign(controls.style, {
-            position: "fixed",
-            top: "8px",
-            right: "8px",
-            zIndex: "2147483647",
-            display: "flex",
-            gap: "4px",
-            fontFamily: "sans-serif",
-            fontSize: "12px",
-        });
-
-        enableButton =
-            document.createElement("button");
-
-        sourceButton =
-            document.createElement("button");
-
-        for (const button of [
-            enableButton,
-            sourceButton,
-        ]) {
-            button.type = "button";
-
-            Object.assign(button.style, {
-                padding: "7px 10px",
-                border: "0",
-                borderRadius: "5px",
-                cursor: "pointer",
-                background: "#444",
-                color: "#fff",
-                boxShadow:
-                    "0 2px 6px rgba(0, 0, 0, 0.35)",
-            });
-        }
-
-        enableButton.addEventListener(
-            "click",
-            enableTranslator
+        document.addEventListener(
+            "pointerdown",
+            retry,
+            true
         );
 
-        sourceButton.addEventListener(
-            "click",
-            changeSourceLanguage
+        document.addEventListener(
+            "keydown",
+            retry,
+            true
         );
-
-        controls.append(
-            sourceButton,
-            enableButton
-        );
-
-        document.body.appendChild(
-            controls
-        );
-
-        updateControls();
     }
 
     // -------------------------------------------------------------------------
@@ -549,9 +392,9 @@
     // -------------------------------------------------------------------------
 
     startObserver();
-    createControls();
+    createTranslator();
 
     console.log(
-        "[The Lounge Translator] userscript loaded"
+        "[NL→EN] The Lounge translator loaded."
     );
 })();
