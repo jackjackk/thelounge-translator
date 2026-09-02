@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         The Lounge NL → EN Translator
 // @namespace    thelounge-local-translator
-// @version      1.4.0
-// @description  Automatically translate Dutch The Lounge messages to English using the browser's local Translator API.
+// @version      1.5.0
+// @description  Automatically translate Dutch The Lounge messages to English and speak the original Dutch text when a message is clicked.
 // @match        https://example.invalid/*
 // @grant        none
 // @run-at       document-idle
@@ -15,6 +15,7 @@
 
     const SOURCE_LANGUAGE = "nl";
     const TARGET_LANGUAGE = "en";
+    const SPEECH_LANGUAGE = "nl-NL";
 
     const MESSAGE_SELECTOR = '.msg[data-type="message"]';
     const TRANSLATION_CLASS = "local-en-translation";
@@ -59,6 +60,105 @@
         return clone.textContent
             .replace(/\s+/g, " ")
             .trim();
+    }
+
+    // -------------------------------------------------------------------------
+    // Dutch text-to-speech
+    // -------------------------------------------------------------------------
+
+    function getDutchVoice() {
+        if (!("speechSynthesis" in globalThis)) {
+            return null;
+        }
+
+        const voices = speechSynthesis.getVoices();
+
+        return (
+            voices.find((voice) => voice.lang.toLowerCase() === "nl-nl")
+            || voices.find((voice) => voice.lang.toLowerCase().startsWith("nl"))
+            || null
+        );
+    }
+
+    function speakDutch(text) {
+        if (!("speechSynthesis" in globalThis)) {
+            console.warn(
+                "[NL→EN] Speech synthesis is unavailable in this browser."
+            );
+
+            return;
+        }
+
+        if (!text) {
+            return;
+        }
+
+        /*
+         * Stop any sentence that is currently being spoken so clicking another
+         * message immediately reads the newly selected Dutch message.
+         */
+        speechSynthesis.cancel();
+
+        const utterance = new SpeechSynthesisUtterance(text);
+        const voice = getDutchVoice();
+
+        utterance.lang = SPEECH_LANGUAGE;
+        utterance.rate = 1;
+        utterance.pitch = 1;
+        utterance.volume = 1;
+
+        if (voice) {
+            utterance.voice = voice;
+        }
+
+        speechSynthesis.speak(utterance);
+    }
+
+    function startSpeechHandler() {
+        document.addEventListener("click", (event) => {
+            if (!(event.target instanceof Element)) {
+                return;
+            }
+
+            /*
+             * Preserve normal behavior for interactive elements inside a
+             * message, such as links, buttons, inputs, and menus.
+             */
+            if (event.target.closest([
+                "a",
+                "button",
+                "input",
+                "textarea",
+                "select",
+                "summary",
+                "[role='button']",
+                "[contenteditable='true']",
+            ].join(","))) {
+                return;
+            }
+
+            /*
+             * Clicking the English translation itself should not trigger TTS.
+             * Click the original Dutch message text instead.
+             */
+            if (event.target.closest(`.${TRANSLATION_CLASS}`)) {
+                return;
+            }
+
+            const message = event.target.closest(MESSAGE_SELECTOR);
+
+            if (!message) {
+                return;
+            }
+
+            const text = getMessageText(message);
+
+            if (!text) {
+                return;
+            }
+
+            speakDutch(text);
+        });
     }
 
     function appendTranslation(message, text) {
@@ -454,6 +554,7 @@
 
     startObserver();
     startNavigationWatcher();
+    startSpeechHandler();
     createTranslator();
 
     console.log(
