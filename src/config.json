@@ -1,0 +1,347 @@
+{
+  "siteGroups": [
+    {
+      "id": "thelounge-instances",
+      "label": "The Lounge instances",
+      "matches": [
+        "https://chat.revspace.nl/*"
+      ],
+      "selectorProfile": "thelounge"
+    },
+    {
+      "id": "revspace-discourse",
+      "label": "RevSpace Discourse forum",
+      "matches": [
+        "https://forum.revspace.nl/*"
+      ],
+      "selectorProfile": "discourse"
+    }
+  ],
+  "selectorProfiles": {
+    "thelounge": {
+      "messageSelectors": [
+        ".msg[data-type=\"message\"]"
+      ],
+      "contentSelectors": [
+        ":scope > .content",
+        ".content"
+      ],
+      "excludedContentSelectors": [
+        ".reply-context",
+        ".preview",
+        ".msg-shown-in-active",
+        ".msg-statusmsg"
+      ],
+      "interactiveSelectors": [
+        "a",
+        "button",
+        "input",
+        "textarea",
+        "select",
+        "summary",
+        "[role='button']",
+        "[contenteditable='true']"
+      ],
+      "composer": {
+        "inputSelectors": [
+          "textarea#input"
+        ],
+        "skipSlashCommands": true
+      },
+      "messageIdentityAttributes": [
+        "data-id",
+        "id"
+      ],
+      "translationScroll": {
+        "keepBottomPinned": true,
+        "bottomThresholdPx": 32
+      }
+    },
+    "discourse": {
+      "messageSelectors": [
+        ".topic-post",
+        "article[data-post-id]"
+      ],
+      "contentSelectors": [
+        ":scope .topic-body .cooked",
+        ":scope .cooked"
+      ],
+      "excludedContentSelectors": [
+        "aside.quote",
+        "blockquote",
+        "pre",
+        "code",
+        ".onebox",
+        ".lightbox-wrapper",
+        ".poll"
+      ],
+      "interactiveSelectors": [
+        "a",
+        "button",
+        "input",
+        "textarea",
+        "select",
+        "summary",
+        "[role='button']",
+        "[contenteditable='true']"
+      ],
+      "composer": {
+        "inputSelectors": [
+          "textarea.d-editor-input"
+        ],
+        "skipSlashCommands": false
+      },
+      "messageIdentityAttributes": [
+        "data-post-id",
+        "id"
+      ],
+      "lazyLoadRescan": {
+        "scrollDelayMs": 120,
+        "visibilityDelayMs": 80,
+        "attributeFilter": [
+          "class",
+          "data-post-id",
+          "id"
+        ]
+      }
+    }
+  },
+  "sourceLanguage": "nl",
+  "targetLanguage": "en",
+  "speechLanguage": "nl-NL",
+  "translationClass": "local-en-translation",
+  "stateAttribute": "data-local-translation-state",
+  "translationStyle": {
+    "opacity": "0.72",
+    "fontStyle": "italic",
+    "marginTop": "2px"
+  },
+  "bergamot": {
+    "workers": 1,
+    "batchSize": 8,
+    "sentenceCacheSize": 16384,
+    "pivotLanguage": null,
+    "localModels": [
+      {
+        "from": "nl",
+        "to": "en",
+        "modelPath": "models/nlen/model.nlen.intgemm.alphas.bin",
+        "shortlistPath": "models/nlen/lex.50.50.nlen.s2t.bin",
+        "vocabPaths": [
+          "models/nlen/vocab.nlen.spm"
+        ],
+        "expectedBytes": {
+          "model": 17140899,
+          "shortlist": 4940304,
+          "vocab": 807730
+        },
+        "expectedSha256": {
+          "model": "187f9c8f1ffbcc8ecf0724b608ffed9f15bde262b9de5c4754f8d763b585969d",
+          "shortlist": "15c473e6e5aef1fa3fe5cc804844e19a2c671d2e39169dcbc06f456ca4f9b2c0",
+          "vocab": "48a6331cb8a69d21dd24c6c2a15de44a07bcfd4a4470eaf4616849d77945f6b9"
+        },
+        "engineConfig": {
+          "gemm-precision": "int8shiftAlphaAll"
+        },
+        "downloadSources": [
+          {
+            "baseUrl": "https://github.com/mozilla/firefox-translations-models/raw/refs/heads/main/models/tiny/nlen/",
+            "compression": "gzip",
+            "suffix": ".gz"
+          },
+          {
+            "baseUrl": "https://storage.googleapis.com/bergamot-models-sandbox/0.3.3/nlen/",
+            "compression": "none",
+            "suffix": ""
+          }
+        ]
+      },
+      {
+        "from": "en",
+        "to": "nl",
+        "modelPath": "models/ennl/model.ennl.intgemm.alphas.bin",
+        "shortlistPath": "models/ennl/lex.50.50.ennl.s2t.bin",
+        "vocabPaths": [
+          "models/ennl/vocab.ennl.spm"
+        ],
+        "expectedBytes": {
+          "model": 17140899,
+          "shortlist": 4494892,
+          "vocab": 807541
+        },
+        "expectedSha256": {
+          "model": "906690a58a0d72aff28bd4b941cbd0984d1e0a62958c0b21aebae378a656d822",
+          "shortlist": "f780a6d74af4b141f551dcc0da56bab44a05a90ef53d63381269710f35eaa41b",
+          "vocab": "43ba3922c3bba2b76ca2e2124837c96518b0e31300b7d6d5ccce55ee10d86393"
+        },
+        "engineConfig": {
+          "gemm-precision": "int8shiftAlphaAll"
+        },
+        "downloadSources": [
+          {
+            "baseUrl": "https://github.com/mozilla/firefox-translations-models/raw/refs/heads/main/models/tiny/ennl/",
+            "compression": "gzip",
+            "suffix": ".gz"
+          },
+          {
+            "baseUrl": "https://storage.googleapis.com/bergamot-models-sandbox/0.3.3/ennl/",
+            "compression": "none",
+            "suffix": ""
+          }
+        ]
+      }
+    ]
+  },
+  "outgoingTranslation": {
+    "enabled": true,
+    "fromLanguage": "en",
+    "toLanguage": "nl",
+    "hotkeys": [
+      {
+        "key": "y",
+        "ctrl": true,
+        "shift": true,
+        "alt": false,
+        "meta": false
+      },
+      {
+        "key": "y",
+        "ctrl": false,
+        "shift": true,
+        "alt": false,
+        "meta": true
+      }
+    ],
+    "stateAttribute": "data-local-outgoing-translation-state",
+    "cache": {
+      "storageKey": "theloungeBergamotOutgoingCacheV1",
+      "maxEntries": 500,
+      "maxTextLength": 6000,
+      "persistDebounceMs": 750
+    }
+  },
+  "learningBatches": {
+    "enabled": true,
+    "storageKey": "localBergamotLearningBatchesV1",
+    "maxBatches": 80,
+    "maxTextLength": 6000,
+    "buttonLabel": "Dutch study",
+    "panelTitle": "Dutch study batches",
+    "copyOrder": "oldest-unused",
+    "includeSiteLabel": true,
+    "hotkeys": [
+      {
+        "key": "l",
+        "ctrl": true,
+        "shift": true,
+        "alt": false,
+        "meta": false
+      },
+      {
+        "key": "l",
+        "ctrl": false,
+        "shift": true,
+        "alt": false,
+        "meta": true
+      }
+    ],
+    "position": {
+      "left": "16px",
+      "bottom": "16px"
+    },
+    "promptSelectionStorageKey": "localBergamotLearningPromptSelectionV1",
+    "defaultPromptId": "interactive",
+    "prompts": [
+      {
+        "id": "interactive",
+        "label": "Interactive session",
+        "description": "Interactive tutoring: overview, then one exercise at a time.",
+        "prompt": "You are an interactive Dutch tutor for an English-speaking learner. Use only the Dutch sentences below as the primary material for this session. No English translations are supplied. Infer meaning from the Dutch context and teach specifically from the vocabulary, idioms, grammar, word order, particles, verb forms, pronouns, and sentence patterns that actually occur in this batch.\n\nMake the session interactive rather than a static lesson. Start with a short overview of the most useful patterns in the batch, then ask one exercise or question at a time and wait for my answer before continuing. Mix comprehension, recall, fill-in-the-blank, English-to-Dutch production, and short free-response exercises. Explain corrections in English, quote the relevant Dutch phrase, and give a natural corrected version. Call out informal chat/forum usage, contractions, particles, or idioms when relevant. Revisit items I get wrong later in the session (light spaced repetition). Do not introduce large amounts of unrelated vocabulary. If an example is ambiguous, noisy, slangy, or grammatically unusual, say so rather than inventing a rule. Provide an English gloss when first introducing a new item, but do not translate the entire batch up front. Begin the interactive lesson immediately after reviewing the batch."
+      },
+      {
+        "id": "anki",
+        "label": "Anki file generation",
+        "description": "Generate the attached A1→A2 Anki import file prompt.",
+        "prompt": "You are an expert Dutch teacher, CEFR curriculum designer, linguist, and Anki flashcard designer.\n\nYour task is to transform a set of Dutch chat messages into a carefully selected, high-quality Anki deck for a native English speaker learning Dutch.\n\nThe learner is currently approximately CEFR A1 and wants to progress naturally toward A2.\n\nThe emphasis is on:\n\n- useful everyday Dutch\n- conversational comprehension\n- active production\n- high-frequency vocabulary\n- reusable expressions\n- Dutch sentence structure\n- practical grammar\n- natural word order\n- learning Dutch in context rather than memorizing isolated dictionary entries\n\nThe goal is NOT to create a card for every message.\n\nThe goal is to extract the most valuable learning material while aggressively filtering out trivial, redundant, overly specific, or low-value material.\n\n---\n\n# SOURCE MATERIAL\n\nAnalyze the following Dutch chat messages:\n\n[PASTE DUTCH CHAT MESSAGES HERE]\n\nThe messages may contain:\n\n- informal Dutch\n- abbreviations\n- typos\n- incomplete sentences\n- slang\n- emojis\n- names\n- dates\n- logistics\n- repeated phrases\n- English mixed with Dutch\n- context-dependent replies\n\nTreat them as authentic conversational material, not textbook sentences.\n\n---\n\n# LEARNER PROFILE\n\nNative language: English\n\nTarget language: Dutch\n\nCurrent level: approximately A1\n\nTarget progression: A2\n\nPrimary goals:\n\n1. Understand everyday spoken and written Dutch.\n2. Become comfortable with common conversational expressions.\n3. Learn Dutch sentence structure intuitively.\n4. Actively produce useful Dutch sentences.\n5. Build high-frequency vocabulary in context.\n6. Recognize and use reusable grammatical patterns.\n\nAssume the learner already knows some very basic vocabulary but is still developing a reliable understanding of Dutch grammar and word order.\n\nExplain grammar in clear English.\n\nAvoid unnecessary linguistic terminology.\n\nWhen terminology such as \"V2\", \"inversion\", \"subordinate clause\", or \"separable verb\" is useful, explain it simply.\n\n---\n\n# FIRST: FILTER THE CHAT MATERIAL\n\nBefore creating any cards, silently evaluate every source message.\n\nDo NOT automatically make cards from every message.\n\nDiscard messages or parts of messages that have little long-term learning value.\n\n## Usually discard:\n\n- \"ok\"\n- \"haha\"\n- \"lol\"\n- \"ja\"\n- \"nee\"\n- \"thanks\"\n- isolated emojis\n- reaction-only messages\n- people's names\n- phone numbers\n- URLs\n- addresses\n- random dates\n- booking/reference numbers\n- highly specific factual details\n- one-off logistical information\n- accidental keyboard input\n- duplicated messages\n- repeated versions of the same sentence\n- messages consisting mostly of proper nouns\n- isolated numbers\n- obvious typos that teach nothing\n- contextless fragments that cannot be understood reliably\n- vocabulary that is extremely rare or specific unless especially useful\n- English text that does not contribute to learning Dutch\n- trivial words the learner almost certainly already knows\n\nDo not create cards just because a Dutch word appears in the source.\n\n---\n\n# WHEN A SHORT OR SIMPLE MESSAGE IS STILL WORTH KEEPING\n\nDo NOT discard a short message merely because it is short.\n\nKeep it if it demonstrates a useful conversational expression, idiom, grammar pattern, or natural Dutch response.\n\nFor example, expressions such as:\n\nmaakt niet uit\nkomt goed\ngeen probleem\nik denk het wel\nvolgens mij\nlaat maar\neven kijken\nnog even\ndat klopt\nzeker weten\ntot straks\n\nmay deserve cards because they are highly reusable conversational chunks.\n\nTherefore, judge learning VALUE, not message length.\n\n---\n\n# PRIORITIZATION\n\nPrefer material that is:\n\n1. frequent in everyday Dutch\n2. reusable in many situations\n3. useful in conversation\n4. structurally important\n5. difficult for English speakers\n6. useful for progressing from A1 to A2\n7. naturally demonstrated by the source chat\n\nGive lower priority to:\n\n- obscure nouns\n- niche terminology\n- one-time factual information\n- unusual names\n- specialist vocabulary\n- very advanced grammar\n- unnecessarily literary language\n\nWhen multiple source sentences demonstrate the same concept, choose the clearest and most useful example.\n\nDo not generate redundant cards.\n\n---\n\n# SILENT ANALYSIS\n\nBefore generating the deck, silently identify useful:\n\n- nouns\n- verbs\n- adjectives\n- adverbs\n- pronouns\n- prepositions\n- conjunctions\n- separable verbs\n- modal verbs\n- fixed verb-preposition combinations\n- idioms\n- collocations\n- conversational chunks\n- discourse markers\n- common fillers\n- question patterns\n- negation\n- verb conjugations\n- tense patterns\n- perfect tense\n- word order\n- inversion\n- V2 word order\n- subordinate clauses\n- infinitive placement\n- de/het nouns\n- plural forms\n- diminutives\n- adjective endings\n- er\n- daar/hier constructions\n- common spoken-Dutch patterns\n- differences between natural Dutch and literal English\n\nDo not output this analysis.\n\nUse it only to determine which cards deserve to exist.\n\n---\n\n# CARD STRATEGY\n\nGenerate three conceptual card types:\n\n1. VOCABULARY / EXPRESSION\n2. GRAMMAR / PATTERN\n3. PRODUCTION\n\nAll three use Anki's standard Basic note type.\n\nDo NOT create a separate card-type field.\n\nIdentify the type through tags:\n\ncard::vocab\n\ncard::grammar\n\ncard::production\n\n---\n\n# 1. VOCABULARY / EXPRESSION CARDS\n\nUse these primarily for:\n\n- useful words\n- high-frequency verbs\n- conversational expressions\n- idioms\n- collocations\n- fixed phrases\n- useful verb-preposition combinations\n\nThe Front should usually be the Dutch word or expression.\n\nThe Back should contain:\n\n- concise natural English meaning\n- original Dutch example\n- natural English translation\n- short usage note when useful\n- important grammatical information\n\nExample:\n\nFront:\n\nzin hebben in\n\nBack:\n\nto feel like / be in the mood forExample: Ik heb zin in koffie.Translation: I feel like having coffee.Pattern: zin hebben in + noun/activity\n\n---\n\n# NOUNS\n\nFor useful nouns, include:\n\n- article\n- singular\n- plural when useful\n\nFor example:\n\nde afspraak — afspraken\n\nhet bericht — berichten\n\nDo not teach nouns without de/het when the article is relevant.\n\n---\n\n# VERBS\n\nUse the infinitive as the primary vocabulary form.\n\nExample:\n\nafspreken\n\nnot:\n\nspreek af\n\nOn the Back, show how the verb behaves naturally.\n\nFor separable verbs:\n\nSeparable verb: af + sprekenExample: We spreken morgen af.\n\nInclude important prepositions when they form part of the verb's normal usage.\n\nFor example:\n\nwachten op\ndenken aan\npraten over\nbeginnen met\n\nPrefer teaching the combination rather than only the bare verb when the combination is what learners actually need.\n\n---\n\n# EXPRESSIONS AND CHUNKS\n\nPrefer useful chunks such as:\n\nvolgens mij\n\nmaakt niet uit\n\nik heb zin in\n\ndat komt goed\n\neven kijken\n\nlaat maar weten\n\nin plaats van\n\nhet hangt ervan af\n\nrather than creating separate cards for every component word.\n\nNatural chunks are particularly important for conversational Dutch.\n\n---\n\n# MULTIPLE MEANINGS\n\nIf a word has many meanings, teach primarily the meaning demonstrated in the source sentence.\n\nMention another meaning only when it is extremely common and likely to prevent confusion.\n\nDo not overload beginner cards with dictionary-style lists.\n\n---\n\n# 2. GRAMMAR / PATTERN CARDS\n\nGrammar cards should test a specific reusable principle.\n\nAvoid purely theoretical questions when a concrete example can test the same idea.\n\nPrefer active application.\n\nFor example, instead of only:\n\n\"Where does the infinitive go with a modal verb?\"\n\nprefer something like:\n\nComplete\\:Ik wil morgen naar Amsterdam \\_\\_\\_.\n\nBack:\n\nAnswer: gaanIk wil morgen naar Amsterdam gaan.Rule: With a modal verb such as willen, kunnen or moeten, the other verb normally appears as an infinitive at the end of the clause.\n\nGrammar cards should test ONE concept at a time.\n\n---\n\n# GRAMMAR PRIORITIES\n\nWhen demonstrated by the source material, prioritize:\n\n- main-clause word order\n- verb-second / V2 structure\n- inversion after starting with time/place\n- questions\n- niet versus geen\n- modal verbs\n- infinitive-at-the-end patterns\n- separable verbs\n- subordinate-clause word order\n- perfect tense\n- common auxiliary verbs\n- pronouns\n- de versus het\n- adjective endings\n- prepositions\n- er\n- daar/hier constructions\n- verb + preposition combinations\n- natural conversational word order\n- major Dutch-English differences\n\nDo not generate grammar cards for concepts not supported or strongly motivated by the source material.\n\n---\n\n# 3. PRODUCTION CARDS\n\nGenerate production cards selectively for especially useful expressions and sentence patterns.\n\nThese cards should make the learner actively produce Dutch from English or from a short situational prompt.\n\nDo NOT automatically create a reverse card for every vocabulary item.\n\nProduction cards should be reserved for language that is genuinely useful to say.\n\nGood candidates include:\n\n- common requests\n- opinions\n- questions\n- reactions\n- everyday expressions\n- modal constructions\n- useful word-order patterns\n- conversational chunks\n\nExample:\n\nFront:\n\nSay naturally in Dutch\\:I think she's already home.\n\nBack:\n\nVolgens mij is ze al thuis.Pattern: When \"volgens mij\" occupies the first position, the finite verb still comes second: volgens mij + is + subject...\n\nThis teaches both practical output and grammar.\n\n---\n\n# DO NOT AUTOMATICALLY REVERSE EVERY CARD\n\nAvoid doubling the deck by creating English → Dutch cards for every vocabulary item.\n\nDutch → understanding cards are sufficient for many nouns and lower-priority words.\n\nGenerate production cards only when active recall is especially useful.\n\nExamples of material worth actively producing:\n\n- common verbs\n- conversational phrases\n- frequent sentence frames\n- requests\n- questions\n- opinions\n- common reactions\n- important grammar constructions\n\n---\n\n# CARD QUALITY RULES\n\nFollow strong spaced-repetition principles.\n\nEvery card should test ONE main idea.\n\nKeep the Front concise.\n\nAvoid:\n\n- vague questions\n- trivia\n- cards with several unrelated answers\n- excessive explanation\n- giant vocabulary lists\n- dictionary-style definitions\n- duplicate concepts\n- near-identical cards\n- overly obvious prompts\n- cards that require knowing missing context\n- very advanced details irrelevant to an A1/A2 learner\n\nPrefer:\n\n- active recall\n- contextual examples\n- reusable patterns\n- high-frequency language\n- meaningful contrasts\n- natural conversational Dutch\n\n---\n\n# ORIGINAL CHAT LANGUAGE\n\nPreserve natural Dutch.\n\nDo not \"correct\" something merely because it is informal.\n\nIf the source contains normal spoken or chat Dutch, keep it and identify it as informal when useful.\n\nIf there is an actual typo or grammatical error:\n\n- do not teach the incorrect form as correct\n- provide the corrected form\n- briefly mention the original if useful\n- keep the explanation simple\n\nFor abbreviations or chat language, distinguish between:\n\n- standard Dutch\n- informal spoken Dutch\n- texting/chat abbreviation\n- slang\n\nOnly create cards for these when they are likely to be useful.\n\n---\n\n# EXAMPLE SELECTION\n\nWhenever possible, use the original source sentence as the example.\n\nHowever, if the source sentence is:\n\n- extremely long\n- highly context-dependent\n- contains private or irrelevant details\n- includes several unrelated clauses\n- contains names that distract from learning\n\nyou may create a slightly simplified example that preserves the original grammar and meaning.\n\nPrefer the original whenever it works pedagogically.\n\nNever invent unusual or advanced vocabulary merely to create an example.\n\n---\n\n# PRIVACY / IRRELEVANT DETAILS\n\nRemove unnecessary personal details from cards.\n\nIf a sentence says:\n\n\"Ik ga morgen met Jeroen naar dokter Van Dijk in Utrecht.\"\n\nand the learning target is \"morgen\" or word order, simplify names or irrelevant specifics where appropriate.\n\nThe learner should study Dutch, not memorize personal data from the conversation.\n\n---\n\n# TAGGING SYSTEM\n\nEvery card must have:\n\ndutch\n\nand one level tag:\n\nlevel::A1\n\nor\n\nlevel::A2\n\nand exactly one primary card-type tag:\n\ncard::vocab\n\ncard::grammar\n\nor\n\ncard::production\n\nAdd useful additional tags where appropriate.\n\nExamples:\n\nconversation\n\nexpression\n\nverb\n\nnoun\n\nseparable\\_verb\n\nmodal\\_verb\n\ngrammar::word\\_order\n\ngrammar::inversion\n\ngrammar::negation\n\ngrammar::subordinate\\_clause\n\ngrammar::perfect\\_tense\n\ngrammar::prepositions\n\nsource::chat\n\nExample tag field:\n\ndutch level::A1 card::vocab expression conversation source::chat\n\nDo not use commas between tags.\n\n---\n\n# DUPLICATE CONTROL\n\nAvoid duplicate Front fields.\n\nAnki may detect duplicates using the first field.\n\nIf several cards teach related concepts, ensure each Front tests something meaningfully different.\n\nDo not create multiple cards simply because the same word appears repeatedly.\n\nPrefer one excellent card over three nearly identical ones.\n\n---\n\n# CARD QUANTITY\n\nDo NOT target a fixed number of cards per source message.\n\nCard quantity should depend entirely on learning value.\n\nA trivial message may generate:\n\n0 cards.\n\nA normal useful sentence may generate:\n\n1–2 cards.\n\nA sentence containing an especially important expression plus a useful grammar pattern may generate:\n\n2–3 cards.\n\nOnly rarely generate more.\n\nAggressively prefer quality over quantity.\n\nA smaller deck containing highly reusable language is better than a large deck filled with trivial material.\n\n---\n\n# ANKI STUDY PHILOSOPHY\n\nThe deck is intended for a learner who may study approximately 10–30 new cards per day with FSRS.\n\nTherefore:\n\n- avoid unnecessary card duplication\n- avoid making trivial cards\n- avoid excessive reverse cards\n- prioritize material worth reviewing repeatedly over months\n- every card should justify its future review cost\n\nBefore creating a card, silently ask:\n\n\"Would this still be worth reviewing six months from now?\"\n\nIf the answer is no, usually skip it.\n\n---\n\n# ANKI FILE FORMAT — CRITICAL\n\nCreate an actual UTF-8 plain-text file named:\n\ndutch\\_chat\\_anki.txt\n\nThe file must be directly importable into current Anki.\n\nThe FIRST FIVE physical lines must be exactly:\n\n\\#separator\\:Tab\n\\#html\\:true\n\\#notetype\\:Basic\n\\#columns\\:Front Back Tags\n\\#tags column:3\n\nIMPORTANT:\n\nOn the #columns line, there must be REAL TAB characters between:\n\nFront and Back\n\nand:\n\nBack and Tags\n\nThe conceptual form is:\n\n\\#columns\\:FrontBack[TAB]Tags\n\nbut [TAB] must be replaced with an actual tab character.\n\nDo not write the literal characters \"[TAB]\".\n\nDo not insert any lines before these five headers.\n\nDo not insert a blank line after the headers.\n\nImmediately after:\n\n\\#tags column:3\n\nbegin the card data.\n\n---\n\n# CARD DATA FORMAT\n\nEvery card must contain exactly THREE fields:\n\nFront[TAB]Back[TAB]Tags\n\nEach card occupies exactly ONE physical line.\n\nEach card row must contain exactly TWO tab characters.\n\nTabs may be used ONLY as field separators.\n\nNever use a tab inside Front, Back, or Tags content.\n\n---\n\n# HTML\n\nBecause:\n\n\\#html\\:true\n\nuse HTML for formatting inside fields.\n\nUse:\n\nfor line breaks.\n\nUse:\n\nfor paragraph spacing.\n\nUseful formatting includes:\n\nMeaning:\n\nExample:\n\nTranslation:\n\nPattern:\n\nRule:\n\nNote:\n\nDo NOT use physical newline characters inside card fields.\n\nDo NOT use Markdown formatting inside fields.\n\nFor bold, use:\n\ntext\n\nnot:\n\n**text**\n\nKeep HTML simple and Anki-compatible.\n\n---\n\n# SOURCE SENTENCES IN CARDS\n\nThere is no separate SourceSentence column.\n\nWhere useful, include the original Dutch source sentence inside the Back.\n\nTypical format:\n\nExample: Ik heb er geen zin in.Translation: I don't feel like it.\n\nThis keeps the standard Anki Basic note structure:\n\nFront\n\nBack\n\nTags\n\n---\n\n# EXAMPLE FILE STRUCTURE\n\nThe conceptual structure is:\n\n\\#separator\\:Tab\n\\#html\\:true\n\\#notetype\\:Basic\n\\#columns\\:Front Back Tags\n\\#tags column:3\nzin hebben in to feel like / be in the mood forExample: Ik heb zin in koffie.Translation: I feel like having coffee.Pattern: zin hebben in + noun/activity dutch level::A1 card::vocab expression source::chat\nComplete: Ik wil morgen naar Amsterdam \\_\\_\\_. Answer: gaanIk wil morgen naar Amsterdam gaan.Rule: With a modal verb, the other verb normally appears as an infinitive at the end. dutch level::A1 card::grammar grammar::modal\\_verbs grammar::word\\_order source::chat\nSay naturally in Dutch\\:I think she's already home. Volgens mij is ze al thuis.Pattern: \"Volgens mij\" occupies the first position, so the finite verb still comes before the subject. dutch level::A1 card::production grammar::inversion conversation source::chat\n\nIn the actual file, the separators between fields must be REAL TAB characters.\n\n---\n\n# FILE CREATION REQUIREMENT\n\nActually create:\n\ndutch\\_chat\\_anki.txt\n\nas a UTF-8 plain-text file.\n\nProvide it as a downloadable file.\n\nDo NOT merely show a Markdown table.\n\nDo NOT return CSV.\n\nDo NOT return JSON.\n\nDo NOT wrap the file contents in a Markdown code block.\n\nIf your environment genuinely cannot create a downloadable file, use this fallback:\n\nReturn only the complete raw file contents using real tab characters, with no explanation before or after it.\n\n---\n\n# FINAL SILENT QUALITY CHECK\n\nBefore creating the final file, verify:\n\n1. The source messages were filtered for learning value before card generation.\n2. Trivial messages did not generate cards.\n3. Repeated or redundant material was deduplicated.\n4. Every generated card is worth repeated future review.\n5. High-frequency and reusable language was prioritized.\n6. The deck is appropriate for approximately A1–A2.\n7. Vocabulary is taught in context.\n8. Useful expressions are taught as chunks where appropriate.\n9. Grammar cards test reusable patterns.\n10. Production cards are selective rather than automatic reversals.\n11. Each card tests one main idea.\n12. There are no duplicate or near-duplicate Front fields.\n13. Dutch is natural and accurate.\n14. Informal Dutch is not incorrectly \"corrected\".\n15. Genuine mistakes are not taught as correct.\n16. Personal or irrelevant details have been removed when appropriate.\n17. The file is valid UTF-8.\n18. The first five lines are exactly:\n\n\\#separator\\:Tab\n\\#html\\:true\n\\#notetype\\:Basic\n\\#columns\\:Front Back Tags\n\\#tags column:3\n\n19. The #columns line contains real tab characters.\n20. There is no blank line between the headers and first card.\n21. Every card row contains exactly three fields.\n22. Every card row contains exactly two tab separators.\n23. Tabs occur only as column separators.\n24. Every card occupies exactly one physical line.\n25. Internal line breaks use .\n26. No Markdown table appears in the file.\n27. No Markdown code fence appears in the file.\n28. Tags are space-separated.\n29. Every card has a level tag and a card-type tag.\n30. The resulting file can be directly selected in Anki's File → Import workflow without manually restructuring the fields.\n\n---\n\n# FINAL RESPONSE\n\nReturn only the downloadable file:\n\ndutch\\_chat\\_anki.txt\n\nDo not include commentary, explanations, summaries, or alternative versions unless actual file creation is impossible."
+      }
+    ]
+  },
+  "messageCache": {
+    "storageKey": "theloungeBergamotMessageCacheV1",
+    "maxEntries": 2000,
+    "maxTextLength": 6000,
+    "persistDebounceMs": 750
+  },
+  "rescans": {
+    "mutationDelayMs": 150,
+    "navigationDelayMs": 100,
+    "navigationSecondPassMs": 400
+  },
+  "speech": {
+    "enabled": true,
+    "engine": "piper",
+    "fallbackToBrowser": true,
+    "rate": 1.0,
+    "pitch": 1.0,
+    "volume": 1.0,
+    "piper": {
+      "voiceId": "nl_NL-pim-medium",
+      "modelPath": "models/tts/nl_NL-pim-medium.onnx",
+      "configPath": "models/tts/nl_NL-pim-medium.onnx.json",
+      "expectedBytes": {
+        "model": 63516050,
+        "config": 5037
+      },
+      "expectedSha256": {
+        "model": "403e58c3675c394f505c2428117bf34cc56e9542dcf6eadbdd3a84706c12e048",
+        "config": "08b58456ca00cf77123826b1712758f99d5fd19ddfb7ec7da8e1a715b047f642"
+      },
+      "downloadSources": [
+        {
+          "baseUrl": "https://huggingface.co/rhasspy/piper-voices/resolve/da877cff0d72d39e8b4d08564dfd61b7732d7df4/nl/nl_NL/pim/medium/",
+          "compression": "none",
+          "suffix": "?download=true"
+        }
+      ],
+      "speakerId": 0,
+      "maxTextLength": 1200,
+      "audioCacheEntries": 24,
+      "ortThreads": 1
+    },
+    "stripUrls": true
+  },
+  "notifications": {
+    "enabled": true,
+    "minLevel": "debug",
+    "position": {
+      "x": "right",
+      "y": "top"
+    },
+    "ripple": false,
+    "dedupeWindowMs": 1500,
+    "maxVisible": 5,
+    "maxMessageLength": 300,
+    "types": {
+      "debug": {
+        "background": "#59636f",
+        "durationMs": 3000,
+        "dismissible": false
+      },
+      "info": {
+        "background": "#2563eb",
+        "durationMs": 4500,
+        "dismissible": false
+      },
+      "warning": {
+        "background": "#b45309",
+        "durationMs": 7000,
+        "dismissible": true
+      },
+      "error": {
+        "background": "#b91c1c",
+        "durationMs": 12000,
+        "dismissible": true
+      }
+    }
+  }
+}

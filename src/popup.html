@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Local Bergamot Translator</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <main class="app">
+    <header class="app-header">
+      <div>
+        <h1>Local Bergamot Translator</h1>
+        <p>Dutch study prompt history</p>
+      </div>
+      <label class="toggle" title="Enable or disable translation on all configured sites">
+        <input id="translation-enabled" type="checkbox">
+        <span class="toggle-track" aria-hidden="true"><span></span></span>
+        <span id="translation-label">Translation</span>
+      </label>
+    </header>
+
+    <section class="summary" aria-label="Study prompt summary">
+      <div><strong id="total-count">0</strong><span>prompts</span></div>
+      <div><strong id="unused-count">0</strong><span>unused sentences</span></div>
+      <div><strong id="used-count">0</strong><span>used sentences</span></div>
+    </section>
+
+    <section class="prompt-choice" aria-label="Prompt selection">
+      <label for="prompt-selector">Prompt used when copying</label>
+      <select id="prompt-selector"></select>
+      <p id="prompt-description"></p>
+    </section>
+
+    <section class="toolbar" aria-label="Study prompt actions">
+      <button id="copy-next" class="primary" type="button">Copy all unused</button>
+      <button id="refresh" type="button">Refresh</button>
+      <button id="clear-used" class="danger-quiet" type="button">Clear history</button>
+    </section>
+
+    <p id="status" class="status" role="status" aria-live="polite"></p>
+    <section id="batch-list" class="batch-list" aria-label="Dutch study prompt history"></section>
+  </main>
+  <script src="popup.js"></script>
+</body>
+</html>
